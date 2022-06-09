@@ -958,6 +958,11 @@ class Yolact(nn.Module):
         priors = torch.cat(priors, 0)
         boxes, scores, classes, masks = self.detect(loc, conf, mask, priors)
 
+        proto_out = proto_out[0] @ masks[0].t()
+        proto_out = torch.sigmoid(proto_out)
+        # masks = crop(masks, boxes)
+        proto_out = proto_out.permute(2, 0, 1).contiguous()[np.newaxis, ...]
+
         return boxes, scores, classes, masks, proto_out
 
 
