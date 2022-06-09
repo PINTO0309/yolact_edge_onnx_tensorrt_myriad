@@ -5,7 +5,7 @@ Provides a conversion flow for **`YOLACT_Edge`** to models compatible with ONNX,
 
 # ToDo
 - https://www.tensorflow.org/api_docs/python/tf/image/combined_non_max_suppression
-- Replace ReduceMax and ArgMax.
+- Replace `ReduceMax` and `ArgMax`.
 
 # Official Repo
 https://github.com/haotian-liu/yolact_edge
