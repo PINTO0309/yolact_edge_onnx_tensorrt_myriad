@@ -8,6 +8,11 @@ https://github.com/haotian-liu/yolact_edge
 1. https://github.com/PINTO0309/tflite2tensorflow
 2. https://github.com/PINTO0309/simple-onnx-processing-tools
 
+# Convert
+See sequence below.
+
+https://github.com/PINTO0309/yolact_edge_onnx_tensorrt_myriad/blob/main/convert_script.txt
+
 # Benchmark
 ## ONNX + TensorRT
 ```bssh
