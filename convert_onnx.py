@@ -19,6 +19,6 @@ if __name__=='__main__':
         output_onnx,
         opset_version=11,
         input_names=['input'],
-        output_names=["boxes", "scores", "classes", "masks"]
+        output_names=["boxes", "scores", "classes", "masks", "proto"]
     )
 

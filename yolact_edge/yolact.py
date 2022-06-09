@@ -958,7 +958,7 @@ class Yolact(nn.Module):
         priors = torch.cat(priors, 0)
         boxes, scores, classes, masks = self.detect(loc, conf, mask, priors)
 
-        return boxes, scores, classes, masks
+        return boxes, scores, classes, masks, proto_out
 
 
 
