@@ -90,7 +90,11 @@ sor4onnx \
 --output_onnx_file_path yolact_edge_mobilenetv2_550x550.onnx \
 --mode outputs
 
-
+sor4onnx \
+--input_onnx_file_path yolact_edge_mobilenetv2_550x550.onnx \
+--old_new "main_proto" "proto" \
+--output_onnx_file_path yolact_edge_mobilenetv2_550x550.onnx \
+--mode outputs
 
 
 
