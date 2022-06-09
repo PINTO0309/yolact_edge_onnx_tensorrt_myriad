@@ -65,6 +65,20 @@ sor4onnx \
 
 sor4onnx \
 --input_onnx_file_path nms_yolact_edge.onnx \
+--old_new "input_5" "nms_proto" \
+--output_onnx_file_path nms_yolact_edge.onnx \
+--mode inputs
+
+
+
+sor4onnx \
+--input_onnx_file_path nms_yolact_edge.onnx \
+--old_new "Identity_1" "proto_out" \
+--output_onnx_file_path nms_yolact_edge.onnx \
+--mode outputs
+
+sor4onnx \
+--input_onnx_file_path nms_yolact_edge.onnx \
 --old_new "Identity" "x1y1x2y2_scores_classes_masks_4x1x1x32" \
 --output_onnx_file_path nms_yolact_edge.onnx \
 --mode outputs
@@ -73,7 +87,7 @@ sor4onnx \
 snc4onnx \
 --input_onnx_file_paths yolact_edge_mobilenetv2_54_800000.onnx nms_yolact_edge.onnx \
 --op_prefixes_after_merging main post \
---srcop_destop boxes nms_boxes scores nms_scores classes nms_classes masks nms_masks \
+--srcop_destop boxes nms_boxes scores nms_scores classes nms_classes masks nms_masks proto nms_proto \
 --output_onnx_file_path yolact_edge_mobilenetv2_550x550.onnx
 
 
@@ -92,9 +106,12 @@ sor4onnx \
 
 sor4onnx \
 --input_onnx_file_path yolact_edge_mobilenetv2_550x550.onnx \
---old_new "main_proto" "proto" \
+--old_new "post_proto_out" "proto_out" \
 --output_onnx_file_path yolact_edge_mobilenetv2_550x550.onnx \
 --mode outputs
+
+onnxsim yolact_edge_mobilenetv2_550x550.onnx yolact_edge_mobilenetv2_550x550.onnx
+onnxsim yolact_edge_mobilenetv2_550x550.onnx yolact_edge_mobilenetv2_550x550.onnx
 
 
 

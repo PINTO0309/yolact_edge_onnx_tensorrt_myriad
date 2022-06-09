@@ -43,6 +43,15 @@ masks = tf.keras.layers.Input(
     dtype=tf.float32,
 )
 
+protos = tf.keras.layers.Input(
+    shape=[
+        138,
+        138,
+        BOXES,
+    ],
+    batch_size=1,
+    dtype=tf.float32,
+)
 
 boxes_non_batch = tf.squeeze(boxes)
 x1 = boxes_non_batch[:,0][:,np.newaxis]
@@ -85,10 +94,17 @@ selected_masks = tf.gather(
     selected_indices
 )
 
+selected_protos = tf.gather(
+    protos[0],
+    selected_indices,
+    axis=2,
+)
+selected_protos_trans = tf.transpose(selected_protos, perm=[2,0,1])
+
 
 outputs = tf.concat([selected_boxes, selected_scores, selected_classes, selected_masks], axis=1)
 
-model = tf.keras.models.Model(inputs=[boxes,scores,classes,masks], outputs=[outputs])
+model = tf.keras.models.Model(inputs=[boxes,scores,classes,masks,protos], outputs=[outputs, selected_protos_trans])
 model.summary()
 output_path = 'saved_model_postprocess'
 tf.saved_model.save(model, output_path)
