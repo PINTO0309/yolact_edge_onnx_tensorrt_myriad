@@ -1,6 +1,8 @@
 # [WIP] yolact_edge_onnx_tensorrt_myriad
 Provides a conversion flow for **`YOLACT_Edge`** to models compatible with ONNX, TensorRT, OpenVINO and Myriad (OAK). My own implementation of post-processing allows for e2e inference.
 
+[![CodeQL](https://github.com/PINTO0309/yolact_edge_onnx_tensorrt_myriad/workflows/CodeQL/badge.svg)](https://github.com/PINTO0309/yolact_edge_onnx_tensorrt_myriad/actions?query=workflow%3ACodeQL)
+
 # ToDo
 - https://www.tensorflow.org/api_docs/python/tf/image/combined_non_max_suppression
 - Replace ReduceMax and ArgMax.
