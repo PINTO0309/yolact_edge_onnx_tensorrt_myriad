@@ -655,14 +655,18 @@ class Detect(object):
         priors = priors[np.newaxis, ...]
         variances = [0.1, 0.2]
 
-        boxes = torch.cat((
-            priors[:, :, :2] + loc[:, :, :2] * variances[0] * priors[:, :, 2:],
-            priors[:, :, 2:] * torch.exp(loc[:, :, 2:] * variances[1])), 2)
+        boxes = torch.cat(
+            (
+                priors[:, :, :2] + loc[:, :, :2] * variances[0] * priors[:, :, 2:],
+                priors[:, :, 2:] * torch.exp(loc[:, :, 2:] * variances[1])
+            ),
+            2
+        )
 
         boxes0 = boxes[:, :, 0] - boxes[:, :, 2] / 2
         boxes1 = boxes[:, :, 1] - boxes[:, :, 3] / 2
-        boxes2 = boxes[:, :, 2] + boxes[:, :, 0]
-        boxes3 = boxes[:, :, 3] + boxes[:, :, 1]
+        boxes2 = boxes[:, :, 0] + boxes[:, :, 2] / 2
+        boxes3 = boxes[:, :, 1] + boxes[:, :, 3] / 2
         boxes = torch.cat(
             [
                 boxes0[...,np.newaxis],
