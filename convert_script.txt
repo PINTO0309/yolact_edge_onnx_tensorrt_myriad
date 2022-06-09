@@ -1,3 +1,5 @@
+python convert_onnx.py
+
 onnxsim yolact_edge_mobilenetv2_54_800000.onnx yolact_edge_mobilenetv2_54_800000.onnx
 onnxsim yolact_edge_mobilenetv2_54_800000.onnx yolact_edge_mobilenetv2_54_800000.onnx
 onnxsim yolact_edge_mobilenetv2_54_800000.onnx yolact_edge_mobilenetv2_54_800000.onnx
