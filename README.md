@@ -37,7 +37,7 @@ INFO: output_name.1: x1y1x2y2_scores_classes_masks_4x1x1x32 shape: [100, 38] dty
   - `x1y1x2y2_scores_classes_masks_4x1x1x32`: `float32 [N, 38]`
     - `N` = The number of objects detected, filtered by NMS, and therefore less than 100.
     - `38` = `x1, y1, x2, y2, score x1, classid x1, masks x32`
-  - `proto`: `float32 [N, 138, 138, 32]`
+  - `proto`: `float32 [1, 138, 138, 32]`
 
 ![yolact_edge_mobilenetv2_550x550 onnx (1)](https://user-images.githubusercontent.com/33194443/172852319-7eb465f7-ef56-412b-a2c6-18d3e77df94f.png)
 
