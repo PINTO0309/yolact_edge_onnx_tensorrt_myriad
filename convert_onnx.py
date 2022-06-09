@@ -8,7 +8,7 @@ import re
 def set_cfg_from_pth(file_name):
     file_name = file_name.split('/')[-1]
 
-    split_regex = '(_[\d_]*)?\.pth'
+    split_regex = '(_[\d_]*)?(_interrupt)?\.pth'
     matches = re.split(split_regex, file_name)
 
     set_cfg(matches[0] + '_config')
