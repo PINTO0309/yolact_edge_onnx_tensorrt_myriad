@@ -4,8 +4,9 @@ Provides a conversion flow for **`YOLACT_Edge`** to models compatible with ONNX,
 [![CodeQL](https://github.com/PINTO0309/yolact_edge_onnx_tensorrt_myriad/workflows/CodeQL/badge.svg)](https://github.com/PINTO0309/yolact_edge_onnx_tensorrt_myriad/actions?query=workflow%3ACodeQL)
 
 # ToDo
-- https://www.tensorflow.org/api_docs/python/tf/image/combined_non_max_suppression
+- ~https://www.tensorflow.org/api_docs/python/tf/image/combined_non_max_suppression~
 - Replace `ReduceMax` and `ArgMax`.
+- https://github.com/PINTO0309/components_of_onnx/tree/main/components_of_onnx/ops/NonMaxSuppression
 
 # Official Repo
 https://github.com/haotian-liu/yolact_edge
