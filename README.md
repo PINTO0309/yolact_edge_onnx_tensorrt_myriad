@@ -44,9 +44,10 @@ INFO: file: yolact_edge_mobilenetv2_550x550.onnx
 INFO: providers: ['TensorrtExecutionProvider', 'CPUExecutionProvider']
 INFO: input_name.1: input shape: [1, 3, 550, 550] dtype: float32
 INFO: test_loop_count: 10
-INFO: total elapsed time:  26.749134063720703 ms
-INFO: avg elapsed time per pred:  2.6749134063720703 ms
-INFO: output_name.1: x1y1x2y2_scores_classes_masks_4x1x1x32 shape: [100, 38] dtype: float32
+INFO: total elapsed time:  44.979095458984375 ms
+INFO: avg elapsed time per pred:  4.4979095458984375 ms
+INFO: output_name.1: x1y1x2y2_score_class shape: [1, 0, 6] dtype: float32
+INFO: output_name.2: final_masks shape: [0, 138, 138] dtype: float32
 ```
 
 # How to change NMS parameters
@@ -84,7 +85,7 @@ sam4onnx \
 
   - `x1y1x2y2_score_class`: `float32 [1, N, 6]`
     - `N` = The number of objects detected, filtered by NMS, and therefore less than 1600. `max_output_boxes_per_class=20 x 80classes`
-    - `38` = `x1, y1, x2, y2, score x1, classid x1`
+    - `6` = `x1, y1, x2, y2, score, classid`
   - `final_masks`: `float32 [N, 138, 138]`
     - `N` = The number of objects detected, filtered by NMS, and therefore less than 1600. `max_output_boxes_per_class=20 x 80classes`
 
