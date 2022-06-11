@@ -603,10 +603,12 @@ class Detect(object):
         decoded_boxes = self.decode(loc_data, prior_data)
         boxes = decoded_boxes
         conf_preds = conf_preds[:, 1:, :]
-        scores, classes = torch.max(conf_preds, dim=1)
+        # scores, classes = torch.max(conf_preds, dim=1)
+        scores = conf_preds
         masks = mask_data
 
-        return (boxes, scores, classes, masks)
+        # return (boxes, scores, classes, masks)
+        return (boxes, scores, masks)
 
 
     def point_form(self, boxes):
@@ -956,14 +958,16 @@ class Yolact(nn.Module):
         conf = F.softmax(conf, 2)
         mask = torch.cat(mask, 1)
         priors = torch.cat(priors, 0)
-        boxes, scores, classes, masks = self.detect(loc, conf, mask, priors)
+        # boxes, scores, classes, masks = self.detect(loc, conf, mask, priors)
+        boxes, scores, masks = self.detect(loc, conf, mask, priors)
 
-        proto_out = proto_out[0] @ masks[0].t()
-        proto_out = torch.sigmoid(proto_out)
-        # masks = crop(masks, boxes)
-        proto_out = proto_out.permute(2, 0, 1).contiguous()[np.newaxis, ...]
+        # proto_out = proto_out[0] @ masks[0].t()
+        # proto_out = torch.sigmoid(proto_out)
+        # # masks = crop(masks, boxes)
+        # proto_out = proto_out.permute(2, 0, 1).contiguous()[np.newaxis, ...]
 
-        return boxes, scores, classes, masks, proto_out
+        # return boxes, scores, classes, masks, proto_out
+        return boxes, scores, masks, proto_out
 
 
 

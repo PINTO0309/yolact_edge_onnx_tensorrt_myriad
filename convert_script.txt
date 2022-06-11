@@ -197,7 +197,7 @@ sog4onnx \
 --opset 11 \
 --op_name score_threshold_const \
 --output_variables score_threshold float32 [1] \
---attributes value float32 [-inf] \
+--attributes value float32 [0.4] \
 --output_onnx_file_path Constant_score_threshold.onnx
 
 
@@ -237,6 +237,45 @@ snc4onnx \
 --output_onnx_file_path NonMaxSuppression11.onnx
 
 
+
+############ myriad workaround Mul
+OP=Mul
+LOWEROP=${OP,,}
+NUM_BATCHES=1
+OPSET=11
+sog4onnx \
+--op_type ${OP} \
+--opset ${OPSET} \
+--op_name ${LOWEROP}${OPSET} \
+--input_variables workaround_mul_a int64 [\'N\',3] \
+--input_variables workaround_mul_b int64 [1] \
+--output_variables workaround_mul_out int64 [\'N\',3] \
+--output_onnx_file_path ${OP}${OPSET}_workaround.onnx
+
+############ myriad workaround Constant
+sog4onnx \
+--op_type Constant \
+--opset 11 \
+--op_name workaround_mul_const_op \
+--output_variables workaround_mul_const int64 [1] \
+--attributes value int64 [1] \
+--output_onnx_file_path Constant_workaround_mul.onnx
+
+############ myriad workaround Mul + myriad workaround Constant
+snc4onnx \
+--input_onnx_file_paths Constant_workaround_mul.onnx Mul11_workaround.onnx \
+--srcop_destop workaround_mul_const workaround_mul_b \
+--output_onnx_file_path Mul11_workaround.onnx
+
+
+
+############ NMS + myriad workaround Mul
+snc4onnx \
+--input_onnx_file_paths NonMaxSuppression11.onnx Mul11_workaround.onnx \
+--srcop_destop selected_indices workaround_mul_a \
+--output_onnx_file_path NonMaxSuppression11.onnx
+
+
 ############ yxyx + NMS
 snc4onnx \
 --input_onnx_file_paths nms_yolact_edge_xyxy_yxyx.onnx NonMaxSuppression11.onnx \
@@ -248,3 +287,289 @@ sor4onnx \
 --old_new "input_1" "boxes_var" \
 --output_onnx_file_path NonMaxSuppression11.onnx \
 --mode inputs
+
+
+############ NMS Slice
+python nms_yolact_edge_score_indices.py
+
+python -m tf2onnx.convert \
+--opset 11 \
+--tflite saved_model_postprocess/nms_yolact_edge_score_indices.tflite \
+--output nms_yolact_edge_score_indices.onnx
+
+onnxsim nms_yolact_edge_score_indices.onnx nms_yolact_edge_score_indices.onnx
+onnxsim nms_yolact_edge_score_indices.onnx nms_yolact_edge_score_indices.onnx
+
+sor4onnx \
+--input_onnx_file_path nms_yolact_edge_score_indices.onnx \
+--old_new "Identity_1" "box_indices_sliced" \
+--output_onnx_file_path nms_yolact_edge_score_indices.onnx \
+--mode outputs
+
+sor4onnx \
+--input_onnx_file_path nms_yolact_edge_score_indices.onnx \
+--old_new "Identity" "classes_sliced" \
+--output_onnx_file_path nms_yolact_edge_score_indices.onnx \
+--mode outputs
+
+sor4onnx \
+--input_onnx_file_path nms_yolact_edge_score_indices.onnx \
+--old_new "input_1" "selected_indices_before_slice" \
+--output_onnx_file_path nms_yolact_edge_score_indices.onnx \
+--mode inputs
+
+
+############ Boxes gather
+OP=Gather
+LOWEROP=${OP,,}
+NUM_BATCHES=1
+SPATIAL_DIMENSION=19248
+OPSET=11
+sog4onnx \
+--op_type ${OP} \
+--opset ${OPSET} \
+--op_name ${LOWEROP}${OPSET}_boxes \
+--input_variables gat_boxes_var float32 [${NUM_BATCHES},${SPATIAL_DIMENSION},4] \
+--input_variables gat_boxes_indices_var int64 [\'N\'] \
+--output_variables gat_boxes_out float32 [${NUM_BATCHES},\'N\',4] \
+--attributes axis int64 1 \
+--output_onnx_file_path ${OP}${OPSET}_boxes.onnx
+
+onnxsim ${OP}${OPSET}_boxes.onnx ${OP}${OPSET}_boxes.onnx
+
+############ Masks gather
+OP=Gather
+LOWEROP=${OP,,}
+NUM_BATCHES=1
+SPATIAL_DIMENSION=19248
+OPSET=11
+sog4onnx \
+--op_type ${OP} \
+--opset ${OPSET} \
+--op_name ${LOWEROP}${OPSET}_masks \
+--input_variables gat_masks_var float32 [${NUM_BATCHES},${SPATIAL_DIMENSION},32] \
+--input_variables gat_masks_indices_var int64 [\'N\'] \
+--output_variables gat_masks_out float32 [${NUM_BATCHES},\'N\',32] \
+--attributes axis int64 1 \
+--output_onnx_file_path ${OP}${OPSET}_masks.onnx
+
+onnxsim ${OP}${OPSET}_masks.onnx ${OP}${OPSET}_masks.onnx
+
+
+
+############ NMS Slice + Boxes gather
+snc4onnx \
+--input_onnx_file_paths nms_yolact_edge_score_indices.onnx Gather11_boxes.onnx \
+--srcop_destop box_indices_sliced gat_boxes_indices_var \
+--output_onnx_file_path nms_yolact_edge_score_indices.onnx
+
+############ NMS Slice + Masks gather
+snc4onnx \
+--input_onnx_file_paths nms_yolact_edge_score_indices.onnx Gather11_masks.onnx \
+--srcop_destop box_indices_sliced gat_masks_indices_var \
+--output_onnx_file_path nms_yolact_edge_score_indices.onnx
+
+
+############ NMS + Sliced values
+snc4onnx \
+--input_onnx_file_paths NonMaxSuppression11.onnx nms_yolact_edge_score_indices.onnx \
+--srcop_destop workaround_mul_out selected_indices_before_slice boxes_var gat_boxes_var \
+--op_prefixes_after_merging fnms snms \
+--output_onnx_file_path NonMaxSuppression11.onnx
+
+
+############ proto squeeze
+OP=Squeeze
+LOWEROP=${OP,,}
+NUM_BATCHES=1
+H=138
+W=138
+OPSET=11
+sog4onnx \
+--op_type ${OP} \
+--opset ${OPSET} \
+--op_name ${LOWEROP}${OPSET}_proto \
+--input_variables squeeze_proto_var float32 [${NUM_BATCHES},${H},${W},32] \
+--output_variables squeeze_proto_out float32 [${H},${W},32] \
+--attributes axes int64 [0] \
+--output_onnx_file_path ${OP}${OPSET}_proto.onnx
+onnxsim ${OP}${OPSET}_proto.onnx ${OP}${OPSET}_proto.onnx
+
+############ Base model proto + proto squeeze
+snc4onnx \
+--input_onnx_file_paths yolact_edge_mobilenetv2_54_800000.onnx Squeeze11_proto.onnx \
+--srcop_destop proto squeeze_proto_var \
+--output_onnx_file_path yolact_edge_mobilenetv2_54_800000.onnx
+onnxsim yolact_edge_mobilenetv2_54_800000.onnx yolact_edge_mobilenetv2_54_800000.onnx
+
+
+############ Base model + NMS
+snc4onnx \
+--input_onnx_file_paths yolact_edge_mobilenetv2_54_800000.onnx NonMaxSuppression11.onnx \
+--srcop_destop boxes fnms_boxes_var scores fnms_scores_var masks snms_gat_masks_var \
+--output_onnx_file_path yolact_edge_mobilenetv2_54_800000.onnx
+onnxsim yolact_edge_mobilenetv2_54_800000.onnx yolact_edge_mobilenetv2_54_800000.onnx
+
+
+############ snms_gat_masks_out squeeze
+OP=Squeeze
+LOWEROP=${OP,,}
+NUM_BATCHES=1
+OPSET=11
+sog4onnx \
+--op_type ${OP} \
+--opset ${OPSET} \
+--op_name ${LOWEROP}${OPSET}_snms_squeeze_masks_out \
+--input_variables squeeze_snms_squeeze_masks_out_var float32 [${NUM_BATCHES},\'N\',32] \
+--output_variables squeeze_snms_squeeze_masks_out float32 [\'N\',32] \
+--attributes axes int64 [0] \
+--output_onnx_file_path ${OP}${OPSET}_snms_squeeze_masks_out.onnx
+onnxsim ${OP}${OPSET}_snms_squeeze_masks_out.onnx ${OP}${OPSET}_snms_squeeze_masks_out.onnx
+
+
+############ Base model proto + proto squeeze
+snc4onnx \
+--input_onnx_file_paths yolact_edge_mobilenetv2_54_800000.onnx Squeeze11_snms_squeeze_masks_out.onnx \
+--srcop_destop snms_gat_masks_out squeeze_snms_squeeze_masks_out_var \
+--output_onnx_file_path yolact_edge_mobilenetv2_54_800000.onnx
+onnxsim yolact_edge_mobilenetv2_54_800000.onnx yolact_edge_mobilenetv2_54_800000.onnx
+
+
+
+############ Score gather
+python nms_yolact_edge_score_gather_nd.py
+
+python -m tf2onnx.convert \
+--opset 11 \
+--tflite saved_model_postprocess/nms_yolact_edge_score_gather_nd.tflite \
+--output nms_yolact_edge_score_gather_nd.onnx
+
+onnxsim nms_yolact_edge_score_gather_nd.onnx nms_yolact_edge_score_gather_nd.onnx
+onnxsim nms_yolact_edge_score_gather_nd.onnx nms_yolact_edge_score_gather_nd.onnx
+
+sor4onnx \
+--input_onnx_file_path nms_yolact_edge_score_gather_nd.onnx \
+--old_new "input_1" "score_gather_nd_input" \
+--output_onnx_file_path nms_yolact_edge_score_gather_nd.onnx \
+--mode inputs
+
+sor4onnx \
+--input_onnx_file_path nms_yolact_edge_score_gather_nd.onnx \
+--old_new "input_2" "score_gather_nd_indices" \
+--output_onnx_file_path nms_yolact_edge_score_gather_nd.onnx \
+--mode inputs
+
+sor4onnx \
+--input_onnx_file_path nms_yolact_edge_score_gather_nd.onnx \
+--old_new "Identity" "final_scores" \
+--output_onnx_file_path nms_yolact_edge_score_gather_nd.onnx \
+--mode outputs
+
+############ Base model + Score gather
+snc4onnx \
+--input_onnx_file_paths yolact_edge_mobilenetv2_54_800000.onnx nms_yolact_edge_score_gather_nd.onnx \
+--srcop_destop scores score_gather_nd_input fnms_selected_indices score_gather_nd_indices \
+--output_onnx_file_path yolact_edge_mobilenetv2_54_800000.onnx
+onnxsim yolact_edge_mobilenetv2_54_800000.onnx yolact_edge_mobilenetv2_54_800000.onnx
+
+
+
+############ Base model 3 outputs concat
+OP=Concat
+LOWEROP=${OP,,}
+NUM_BATCHES=1
+OPSET=11
+sog4onnx \
+--op_type ${OP} \
+--opset ${OPSET} \
+--op_name ${LOWEROP}${OPSET}_final_concat \
+--input_variables cfinal_boxes float32 [${NUM_BATCHES},\'N\',4] \
+--input_variables cfinal_scores float32 [${NUM_BATCHES},\'N\',1] \
+--input_variables cfinal_classes float32 [${NUM_BATCHES},\'N\',1] \
+--output_variables x1y1x2y2_score_class float32 [${NUM_BATCHES},\'N\',6] \
+--attributes axis int64 2 \
+--output_onnx_file_path ${OP}${OPSET}_final_concat.onnx
+onnxsim ${OP}${OPSET}_final_concat.onnx ${OP}${OPSET}_final_concat.onnx
+
+
+############ Base model + Final concat
+snc4onnx \
+--input_onnx_file_paths yolact_edge_mobilenetv2_54_800000.onnx Concat11_final_concat.onnx \
+--srcop_destop snms_gat_boxes_out cfinal_boxes final_scores cfinal_scores snms_classes_sliced cfinal_classes \
+--output_onnx_file_path yolact_edge_mobilenetv2_54_800000.onnx
+onnxsim yolact_edge_mobilenetv2_54_800000.onnx yolact_edge_mobilenetv2_54_800000.onnx
+
+
+############ Mask Transpose
+sog4onnx \
+--op_type Transpose \
+--opset 11 \
+--op_name mask_transpose \
+--input_variables mask_trans_input float32 [\'N\',32] \
+--output_variables mask_trans_output float32 [32,\'N\'] \
+--attributes perm int64 [1,0] \
+--output_onnx_file_path Transpose11_mask_transpose.onnx
+
+############ Base model + Mask Transpose
+snc4onnx \
+--input_onnx_file_paths yolact_edge_mobilenetv2_54_800000.onnx Transpose11_mask_transpose.onnx \
+--srcop_destop squeeze_snms_squeeze_masks_out mask_trans_input \
+--output_onnx_file_path yolact_edge_mobilenetv2_54_800000.onnx
+onnxsim yolact_edge_mobilenetv2_54_800000.onnx yolact_edge_mobilenetv2_54_800000.onnx
+
+
+
+############ Mask MatMul
+sog4onnx \
+--op_type MatMul \
+--opset 11 \
+--op_name mask_matmul \
+--input_variables mask_matmul_input_a float32 [138,138,32] \
+--input_variables mask_matmul_input_b float32 [32,\'N\'] \
+--output_variables mask_matmul_output float32 [138,138,\'N\'] \
+--output_onnx_file_path MatMul11_mask_matmul.onnx
+onnxsim MatMul11_mask_matmul.onnx MatMul11_mask_matmul.onnx
+
+############ Base model + Mask MatMul
+snc4onnx \
+--input_onnx_file_paths yolact_edge_mobilenetv2_54_800000.onnx MatMul11_mask_matmul.onnx \
+--srcop_destop squeeze_proto_out mask_matmul_input_a mask_trans_output mask_matmul_input_b \
+--output_onnx_file_path yolact_edge_mobilenetv2_54_800000.onnx
+onnxsim yolact_edge_mobilenetv2_54_800000.onnx yolact_edge_mobilenetv2_54_800000.onnx
+
+
+############ Mask Sigmoid
+sog4onnx \
+--op_type Sigmoid \
+--opset 11 \
+--op_name mask_sigmoid \
+--input_variables mask_sig_input float32 [138,138,\'N\'] \
+--output_variables mask_sig_output float32 [138,138,\'N\'] \
+--output_onnx_file_path Sigmoid11_mask_sigmoid.onnx
+onnxsim Sigmoid11_mask_sigmoid.onnx Sigmoid11_mask_sigmoid.onnx
+
+############ Base model + Mask Sigmoid
+snc4onnx \
+--input_onnx_file_paths yolact_edge_mobilenetv2_54_800000.onnx Sigmoid11_mask_sigmoid.onnx \
+--srcop_destop mask_matmul_output mask_sig_input \
+--output_onnx_file_path yolact_edge_mobilenetv2_54_800000.onnx
+onnxsim yolact_edge_mobilenetv2_54_800000.onnx yolact_edge_mobilenetv2_54_800000.onnx
+
+
+############ Mask Final Transpose
+sog4onnx \
+--op_type Transpose \
+--opset 11 \
+--op_name mask_final_transpose \
+--input_variables mask_final_trans_input float32 [138,138,\'N\'] \
+--output_variables final_masks float32 [\'N\',138,138] \
+--attributes perm int64 [2,0,1] \
+--output_onnx_file_path Transpose11_mask_final_transpose.onnx
+
+############ Base model + Mask Final Transpose
+snc4onnx \
+--input_onnx_file_paths yolact_edge_mobilenetv2_54_800000.onnx Transpose11_mask_final_transpose.onnx \
+--srcop_destop mask_sig_output mask_final_trans_input \
+--output_onnx_file_path yolact_edge_mobilenetv2_54_800000.onnx
+onnxsim yolact_edge_mobilenetv2_54_800000.onnx yolact_edge_mobilenetv2_54_800000.onnx
+
