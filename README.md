@@ -9,7 +9,7 @@ Provides a conversion flow for **`YOLACT_Edge`** to models compatible with ONNX,
 - [ ] Demo Code
 
 ```bash
-sit4onnx --input_onnx_file_path NonMaxSuppression11.onnx
+sit4onnx --input_onnx_file_path yolact_edge_mobilenetv2_550x550.onnx
 
 INFO: file: NonMaxSuppression11.onnx
 INFO: providers: ['TensorrtExecutionProvider', 'CPUExecutionProvider']
