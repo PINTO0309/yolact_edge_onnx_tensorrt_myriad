@@ -7,19 +7,6 @@ Provides a conversion flow for **`YOLACT_Edge`** to models compatible with ONNX,
 - [x] Replace `ReduceMax` and `ArgMax`.
 - [x] Multi-Class NonMaximumSuppression, CombinedNonMaxSuppression for ONNX
 - [ ] Demo Code
-
-```bash
-sit4onnx --input_onnx_file_path yolact_edge_mobilenetv2_550x550.onnx
-
-INFO: file: NonMaxSuppression11.onnx
-INFO: providers: ['TensorrtExecutionProvider', 'CPUExecutionProvider']
-INFO: input_name.1: boxes_var shape: [1, 19248, 4] dtype: float32
-INFO: input_name.2: scores_var shape: [1, 80, 19248] dtype: float32
-INFO: test_loop_count: 10
-INFO: total elapsed time:  79.51664924621582 ms
-INFO: avg elapsed time per pred:  7.951664924621581 ms
-INFO: output_name.1: selected_indices shape: [1600, 3] dtype: int64
-```
 - Multi-Class NonMaximumSuppression, CombinedNonMaxSuppression ONNX sample
   ![image](https://user-images.githubusercontent.com/33194443/173196638-b5357e79-94d6-4b61-869c-ef0005b8819c.png)
 
