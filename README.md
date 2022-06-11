@@ -8,6 +8,42 @@ Provides a conversion flow for **`YOLACT_Edge`** to models compatible with ONNX,
 - Replace `ReduceMax` and `ArgMax`.
 - https://github.com/PINTO0309/components_of_onnx/tree/main/components_of_onnx/ops
   ```bash
+  ############ xyxy -> yxyx
+  python nms_yolact_edge_xyxyx_yxyx.py
+
+  docker run --gpus all -it --rm \
+  -v `pwd`:/home/user/workdir \
+  ghcr.io/pinto0309/tflite2tensorflow:latest
+
+
+  tflite2tensorflow \
+  --model_path nms_yolact_edge_xyxy_yxyx.tflite \
+  --flatc_path ../flatc \
+  --schema_path ../schema.fbs \
+  --output_pb \
+  --optimizing_for_openvino_and_myriad
+
+  tflite2tensorflow \
+  --model_path nms_yolact_edge_xyxy_yxyx.tflite \
+  --flatc_path ../flatc \
+  --schema_path ../schema.fbs \
+  --output_onnx \
+  --onnx_opset 11
+
+  mv saved_model/model_float32.onnx nms_yolact_edge_xyxy_yxyx.onnx
+
+  onnxsim nms_yolact_edge_xyxy_yxyx.onnx nms_yolact_edge_xyxy_yxyx.onnx
+  onnxsim nms_yolact_edge_xyxy_yxyx.onnx nms_yolact_edge_xyxy_yxyx.onnx
+  onnxsim nms_yolact_edge_xyxy_yxyx.onnx nms_yolact_edge_xyxy_yxyx.onnx
+  onnxsim nms_yolact_edge_xyxy_yxyx.onnx nms_yolact_edge_xyxy_yxyx.onnx
+
+  sor4onnx \
+  --input_onnx_file_path nms_yolact_edge_xyxy_yxyx.onnx \
+  --old_new "Identity" "boxes_xyxy_var" \
+  --output_onnx_file_path nms_yolact_edge_xyxy_yxyx.onnx \
+  --mode outputs
+
+  ############ NMS
   sog4onnx \
   --op_type Constant \
   --opset 11 \
@@ -67,8 +103,22 @@ Provides a conversion flow for **`YOLACT_Edge`** to models compatible with ONNX,
   --input_onnx_file_paths Constant_score_threshold.onnx NonMaxSuppression11.onnx \
   --srcop_destop score_threshold score_threshold_var \
   --output_onnx_file_path NonMaxSuppression11.onnx
+
+
+  ############ yxyx + NMS
+  snc4onnx \
+  --input_onnx_file_paths nms_yolact_edge_xyxy_yxyx.onnx NonMaxSuppression11.onnx \
+  --srcop_destop boxes_xyxy_var boxes_var \
+  --output_onnx_file_path NonMaxSuppression11.onnx
+
+  sor4onnx \
+  --input_onnx_file_path NonMaxSuppression11.onnx \
+  --old_new "input_1" "boxes_var" \
+  --output_onnx_file_path NonMaxSuppression11.onnx \
+  --mode inputs
   ```
-  ![image](https://user-images.githubusercontent.com/33194443/173068057-772b1f43-d7d9-48c2-b9a2-005c437bef80.png)
+  ![image](https://user-images.githubusercontent.com/33194443/173169099-0d60498b-a80e-4f3e-801e-fd7c88212a27.png)
+
   ```bash
   sit4onnx --input_onnx_file_path NonMaxSuppression11.onnx
 
