@@ -7,7 +7,7 @@ Provides a conversion flow for **`YOLACT_Edge`** to models compatible with ONNX,
 - [x] Replace `ReduceMax` and `ArgMax`.
 - [x] Multi-Class NonMaximumSuppression, CombinedNonMaxSuppression for ONNX
 - [ ] Demo Code
-- Multi-Class NonMaximumSuppression, CombinedNonMaxSuppression ONNX sample
+- [x] Multi-Class NonMaximumSuppression, CombinedNonMaxSuppression ONNX sample
   ![image](https://user-images.githubusercontent.com/33194443/173196638-b5357e79-94d6-4b61-869c-ef0005b8819c.png)
 
 
