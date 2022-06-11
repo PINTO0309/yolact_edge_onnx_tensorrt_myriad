@@ -50,6 +50,7 @@ INFO: output_name.1: x1y1x2y2_scores_classes_masks_4x1x1x32 shape: [100, 38] dty
 ```
 
 # How to change NMS parameters
+https://github.com/PINTO0309/simple-onnx-processing-tools
 ```bash
 ### fnms_max_output_boxes_per_class
 sam4onnx \
