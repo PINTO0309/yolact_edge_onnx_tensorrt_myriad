@@ -55,7 +55,7 @@ if __name__=='__main__':
     net.eval()
     net.to(device)
 
-    output_onnx = f'{os.path.splitext(trained_model)[0]}_{height}x{width}.onnx'
+    output_onnx = f'{os.path.splitext(trained_model)[0]}.onnx'
     inputs = torch.randn(1, 3, height, width).to(device)
 
     # Export
@@ -65,7 +65,8 @@ if __name__=='__main__':
         output_onnx,
         opset_version=11,
         input_names=['input'],
-        output_names=["boxes", "scores", "classes", "masks", "proto"]
+        # output_names=["boxes", "scores", "classes", "masks", "proto"]
+        output_names=["boxes", "scores", "masks", "proto"]
     )
 
     # Shape infer

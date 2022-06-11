@@ -6,3 +6,7 @@ saved_model*/
 __pycache__/
 *.json
 yolact_edge_mobilenetv2_550x550/
+yolact_edge_mobilenetv2_54_800000/
+*.xml
+*.bin
+*.mapping
