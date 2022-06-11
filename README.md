@@ -20,6 +20,8 @@ INFO: total elapsed time:  79.51664924621582 ms
 INFO: avg elapsed time per pred:  7.951664924621581 ms
 INFO: output_name.1: selected_indices shape: [1600, 3] dtype: int64
 ```
+- Multi-Class NonMaximumSuppression, CombinedNonMaxSuppression sample
+  ![image](https://user-images.githubusercontent.com/33194443/173196638-b5357e79-94d6-4b61-869c-ef0005b8819c.png)
 
 
 # Official Repo
