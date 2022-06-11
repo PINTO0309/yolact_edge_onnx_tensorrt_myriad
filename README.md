@@ -83,10 +83,10 @@ sam4onnx \
 - OUTPUTS:
 
   - `x1y1x2y2_score_class`: `float32 [1, N, 6]`
-    - `N` = The number of objects detected, filtered by NMS, and therefore less than 1600.
+    - `N` = The number of objects detected, filtered by NMS, and therefore less than 1600. `max_output_boxes_per_class=20 x 80classes`
     - `38` = `x1, y1, x2, y2, score x1, classid x1`
   - `final_masks`: `float32 [N, 138, 138]`
-    - `N` = The number of objects detected, filtered by NMS, and therefore less than 1600.
+    - `N` = The number of objects detected, filtered by NMS, and therefore less than 1600. `max_output_boxes_per_class=20 x 80classes`
 
 ![yolact_edge_mobilenetv2_550x550 onnx (3)](https://user-images.githubusercontent.com/33194443/173196778-0939f477-38bf-44b6-93de-065bc3e8f808.png)
 
