@@ -117,7 +117,7 @@ Provides a conversion flow for **`YOLACT_Edge`** to models compatible with ONNX,
   --output_onnx_file_path NonMaxSuppression11.onnx \
   --mode inputs
   ```
-  ![image](https://user-images.githubusercontent.com/33194443/173169099-0d60498b-a80e-4f3e-801e-fd7c88212a27.png)
+  ![image](https://user-images.githubusercontent.com/33194443/173185010-b71b92dd-be40-4c57-8abb-9dc418526a32.png)
 
   ```bash
   sit4onnx --input_onnx_file_path NonMaxSuppression11.onnx
