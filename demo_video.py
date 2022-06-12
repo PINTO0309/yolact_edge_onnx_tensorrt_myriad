@@ -4,7 +4,27 @@ import cv2
 import argparse
 import onnxruntime
 import numpy as np
+import time
 
+
+LABELS = [
+    "person", "bicycle", "car", "motorcycle", "airplane",
+    "bus", "train", "truck", "boat", "traffic light",
+    "fire hydrant", "stop sign", "parking meter", "bench", "bird",
+    "cat", "dog", "horse", "sheep", "cow",
+    "elephant", "bear", "zebra", "giraffe", "backpack",
+    "umbrella", "handbag", "tie", "suitcase", "frisbee",
+    "skis", "snowboard", "sports ball", "kite", "baseball bat",
+    "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle",
+    "wine glass", "cup", "fork", "knife", "spoon",
+    "bowl", "banana", "apple", "sandwich", "orange",
+    "broccoli", "carrot", "hot dog", "pizza", "donut",
+    "cake", "chair", "couch", "potted plant", "bed",
+    "dining table", "toilet", "tv", "laptop", "mouse",
+    "remote", "keyboard", "cell phone", "microwave", "oven",
+    "toaster", "sink", "refrigerator", "book", "clock",
+    "vase", "scissors", "teddy bear", "hair drier", "toothbrush",
+]
 
 COLORS = [
     [244,  67,  54],
@@ -123,6 +143,7 @@ def main(args):
         if not ret:
             continue
 
+        start = time.time()
         canvas = copy.deepcopy(frame)
 
         # Resize
@@ -152,9 +173,7 @@ def main(args):
             x1y1x2y2_scores_classes_4x1x1_result,
         )
 
-        mask_alpha = 0.45
-
-        for x1y1x2y2_scores_classes_4x1x1, mask in zip(x1y1x2y2_scores_classes_4x1x1_result, masks):
+        for x1y1x2y2_scores_classes_4x1x1 in x1y1x2y2_scores_classes_4x1x1_result:
             score = x1y1x2y2_scores_classes_4x1x1[4]
             classid = int(x1y1x2y2_scores_classes_4x1x1[5])
             if score > 0.60:
@@ -165,8 +184,8 @@ def main(args):
 
                 cv2.putText(
                     canvas,
-                    f'{score:.2f}',
-                    (x_min, y_min if y_min > 20 else 20),
+                    f'{LABELS[classid]} {score:.2f}',
+                    (x_min, (y_min-5) if (y_min-5) > 20 else 20),
                     cv2.FONT_HERSHEY_PLAIN,
                     2,
                     (0, 255, 0),
@@ -181,13 +200,16 @@ def main(args):
                     thickness=2
                 )
 
-
-                mask = cv2.resize(mask, (cap_width, cap_height))
-                mask = np.greater(mask, 0.5)
-                mask = mask[:, :, None]
-                color = get_color(classid)
-
-
+        cv2.putText(
+            canvas,
+            f'{(time.time()-start)*1000:.2f}ms, {1000/(time.time()-start)/1000:.2f}FPS',
+            (10,30),
+            cv2.FONT_HERSHEY_PLAIN,
+            2,
+            (255, 0, 0),
+            2,
+            cv2.LINE_AA,
+        )
 
         key = cv2.waitKey(1)
         if key == 27: # ESC
