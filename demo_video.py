@@ -167,11 +167,11 @@ def main(args):
         )
 
         x1y1x2y2_scores_classes_4x1x1_result = results[0][0]
-        masks = results[1][0]
-        masks = crop(
-            masks,
-            x1y1x2y2_scores_classes_4x1x1_result,
-        )
+        # masks = results[1]
+        # masks = crop(
+        #     masks,
+        #     x1y1x2y2_scores_classes_4x1x1_result,
+        # )
 
         for x1y1x2y2_scores_classes_4x1x1 in x1y1x2y2_scores_classes_4x1x1_result:
             score = x1y1x2y2_scores_classes_4x1x1[4]
