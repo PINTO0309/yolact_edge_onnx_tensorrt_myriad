@@ -1,4 +1,5 @@
 import copy
+from typing import Tuple
 import cv2
 import argparse
 import onnxruntime
@@ -6,25 +7,25 @@ import numpy as np
 
 
 COLORS = [
-    [[[[244,  67,  54]]]],
-    [[[[233,  30,  99]]]],
-    [[[[156,  39, 176]]]],
-    [[[[103,  58, 183]]]],
-    [[[[ 63,  81, 181]]]],
-    [[[[ 33, 150, 243]]]],
-    [[[[  3, 169, 244]]]],
-    [[[[  0, 188, 212]]]],
-    [[[[  0, 150, 136]]]],
-    [[[[ 76, 175,  80]]]],
-    [[[[139, 195,  74]]]],
-    [[[[205, 220,  57]]]],
-    [[[[255, 235,  59]]]],
-    [[[[255, 193,   7]]]],
-    [[[[255, 152,   0]]]],
-    [[[[255,  87,  34]]]],
-    [[[[121,  85,  72]]]],
-    [[[[158, 158, 158]]]],
-    [[[[ 96, 125, 139]]]],
+    [244,  67,  54],
+    [233,  30,  99],
+    [156,  39, 176],
+    [103,  58, 183],
+    [ 63,  81, 181],
+    [ 33, 150, 243],
+    [  3, 169, 244],
+    [  0, 188, 212],
+    [  0, 150, 136],
+    [ 76, 175,  80],
+    [139, 195,  74],
+    [205, 220,  57],
+    [255, 235,  59],
+    [255, 193,   7],
+    [255, 152,   0],
+    [255,  87,  34],
+    [121,  85,  72],
+    [158, 158, 158],
+    [ 96, 125, 139],
 ]
 
 
@@ -32,6 +33,48 @@ def get_color(idx):
     color_idx = idx % len(COLORS)
     color = COLORS[color_idx]
     return color
+
+
+def sanitize_coordinates(
+    _x1: np.ndarray,
+    _x2: np.ndarray,
+    img_size: int,
+    padding: int=0,
+) -> Tuple[np.ndarray, np.ndarray]:
+
+    _x1 = _x1 * img_size
+    _x2 = _x2 * img_size
+    _x1 = _x1.astype(np.int32)
+    _x2 = _x2.astype(np.int32)
+    x1 = np.minimum(_x1, _x2)
+    x2 = np.maximum(_x1, _x2)
+    x1 = np.where((x1-padding) > 0, (x1-padding), 0)
+    x2 = np.where((x2+padding) < img_size, (x2+padding), img_size)
+    return x1, x2
+
+
+def crop(masks: np.ndarray, boxes:np.ndarray, padding:int=1):
+    """
+    "Crop" predicted masks by zeroing out everything not in the predicted bbox.
+    Args:
+        - masks should be a size [n, h, w] tensor of masks
+        - boxes should be a size [n, 6] tensor of bbox coords in relative point form
+    """
+    if len(masks.shape) < 3:
+        masks = masks[np.newaxis, ...]
+    n, h, w = masks.shape
+    x1, x2 = sanitize_coordinates(boxes[:, 0], boxes[:, 2], w, padding)
+    y1, y2 = sanitize_coordinates(boxes[:, 1], boxes[:, 3], h, padding)
+    rows = np.arange(w, dtype=x1.dtype).reshape(1, 1, -1)
+    rows = np.broadcast_to(rows, (n, h, w))
+    cols = np.arange(h, dtype=x1.dtype).reshape(1, 1, -1)
+    cols = np.broadcast_to(cols, (n, h, w))
+    masks_left  = rows >= x1.reshape(-1, 1, 1)
+    masks_right = rows <  x2.reshape(-1, 1, 1)
+    masks_up    = cols >= y1.reshape(-1, 1, 1)
+    masks_down  = cols <  y2.reshape(-1, 1, 1)
+    crop_mask = masks_left * masks_right * masks_up * masks_down
+    return masks * crop_mask
 
 
 def main(args):
@@ -44,20 +87,20 @@ def main(args):
         face_detection_model,
         sess_options=session_option_detection,
         providers=[
-            (
-                'TensorrtExecutionProvider', {
-                    'trt_engine_cache_enable': True,
-                    'trt_engine_cache_path': '.',
-                    'trt_fp16_enable': True,
-                }
-            ),
+            # (
+            #     'TensorrtExecutionProvider', {
+            #         'trt_engine_cache_enable': True,
+            #         'trt_engine_cache_path': '.',
+            #         'trt_fp16_enable': True,
+            #     }
+            # ),
             'CUDAExecutionProvider',
             'CPUExecutionProvider',
         ],
     )
     input_name = sess.get_inputs()[0].name
     input_shapes = sess.get_inputs()[0].shape
-    output_names = [output.name for output in sess.get_outputs()]
+    # output_names = [output.name for output in sess.get_outputs()]
 
     cap_width = int(args.height_width.split('x')[1])
     cap_height = int(args.height_width.split('x')[0])
@@ -103,13 +146,17 @@ def main(args):
         )
 
         x1y1x2y2_scores_classes_4x1x1_result = results[0][0]
-        # x1y1x2y2_scores_classes_4x1x1_result = results[0]
+        masks = results[1][0]
+        masks = crop(
+            masks,
+            x1y1x2y2_scores_classes_4x1x1_result,
+        )
 
-        # proto_out = results[1]
-        # detection_count = len(x1y1x2y2_scores_classes_4x1x1_result)
+        mask_alpha = 0.45
 
-        for x1y1x2y2_scores_classes_4x1x1 in x1y1x2y2_scores_classes_4x1x1_result:
+        for x1y1x2y2_scores_classes_4x1x1, mask in zip(x1y1x2y2_scores_classes_4x1x1_result, masks):
             score = x1y1x2y2_scores_classes_4x1x1[4]
+            classid = int(x1y1x2y2_scores_classes_4x1x1[5])
             if score > 0.60:
                 x_min = int(x1y1x2y2_scores_classes_4x1x1[0] * cap_width)
                 y_min = int(x1y1x2y2_scores_classes_4x1x1[1] * cap_height)
@@ -134,21 +181,12 @@ def main(args):
                     thickness=2
                 )
 
-                # masks = proto_out[..., None]
-                # colors = np.asarray(
-                #     [get_color(idx) for idx in range(detection_count)],
-                #     dtype=np.int32,
-                # )
-                # masks_color = masks.repeat(1, 1, 1, 3) * colors * mask_alpha
 
-                # full_masks = np.zeros(cap_height, cap_width)
-                # mask_w = x_max - x_min
-                # mask_h = y_max - y_min
-                # if mask_w * mask_h <= 0 or mask_w < 0:
-                #     continue
-                # mask = F.interpolate(mask, (mask_h, mask_w), mode=interpolation_mode, align_corners=False)
-                # mask = mask.gt(0.5).float()
-                # full_masks[jdx, y1:y2, x1:x2] = mask
+                mask = cv2.resize(mask, (cap_width, cap_height))
+                mask = np.greater(mask, 0.5)
+                mask = mask[:, :, None]
+                color = get_color(classid)
+
 
 
         key = cv2.waitKey(1)
