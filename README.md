@@ -9,7 +9,7 @@ Provides a conversion flow for **`YOLACT_Edge`** to models compatible with ONNX,
 - [ ] Demo Code
 - [x] Multi-Class NonMaximumSuppression, CombinedNonMaxSuppression ONNX sample
   ![image](https://user-images.githubusercontent.com/33194443/173196638-b5357e79-94d6-4b61-869c-ef0005b8819c.png)
-  ![image](https://user-images.githubusercontent.com/33194443/173258890-f214f896-5e40-4aef-b59e-b6b96dc1f053.png)
+  ![image](https://user-images.githubusercontent.com/33194443/173258939-752ba574-7cc6-4899-b38a-dc1b5df0fbca.png)
 
 # Official Repo
 https://github.com/haotian-liu/yolact_edge
