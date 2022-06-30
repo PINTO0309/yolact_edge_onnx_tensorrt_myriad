@@ -39,6 +39,8 @@ INFO: output_name.2: final_masks shape: [0, 138, 138] dtype: float32
 
 # How to change NMS parameters
 https://github.com/PINTO0309/simple-onnx-processing-tools
+![image](https://user-images.githubusercontent.com/33194443/176657032-f5de1ac9-2726-46e2-ac79-ba8a2d798416.png)
+
 ```bash
 ### fnms_max_output_boxes_per_class
 sam4onnx \
