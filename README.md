@@ -26,6 +26,10 @@ See sequence below.
 
 https://github.com/PINTO0309/yolact_edge_onnx_tensorrt_myriad/blob/main/convert_script.txt
 
+# Conversion to TensorFlow, TensorFlow Lite
+
+https://github.com/PINTO0309/onnx2tf
+
 # Benchmark
 ## ONNX + TensorRT
 ```bssh
