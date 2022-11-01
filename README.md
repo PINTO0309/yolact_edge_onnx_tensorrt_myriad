@@ -3,7 +3,6 @@ Provides a conversion flow for **`YOLACT_Edge`** to models compatible with ONNX,
 
 [![CodeQL](https://github.com/PINTO0309/yolact_edge_onnx_tensorrt_myriad/workflows/CodeQL/badge.svg)](https://github.com/PINTO0309/yolact_edge_onnx_tensorrt_myriad/actions?query=workflow%3ACodeQL)
 
-# ToDo
 - [x] Replace `ReduceMax` and `ArgMax`.
 - [x] Multi-Class NonMaximumSuppression, CombinedNonMaxSuppression for ONNX
 - [x] Demo Code https://github.com/PINTO0309/PINTO_model_zoo/tree/main/085_Yolact_Edge/32_Multi-class_NonMaximumSuppression_compliant_version
